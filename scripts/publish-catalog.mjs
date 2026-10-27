@@ -109,6 +109,14 @@ function api(endpoint, method = "GET", body, jq) {
   }).trim();
 }
 
+// GitHub rejects PR creation by GITHUB_TOKEN with HTTP 403 when the repository or organization has
+// "Allow GitHub Actions to create and approve pull requests" disabled. The signed commits and the
+// standing branch are already published at this point, so a human can open the PR from the branch.
+function isPrCreationForbidden(error) {
+  const text = `${error?.stderr ?? ""}${error?.stdout ?? ""}${error?.message ?? ""}`;
+  return text.includes("not permitted to create or approve pull requests");
+}
+
 function commitOid(value) {
   if (!/^[a-f0-9]{40}$/.test(value)) throw new Error("GitHub returned an invalid commit id.");
   return value;
@@ -183,7 +191,16 @@ function openPublishPr(repository, base) {
     if (api(`${endpoint}/${number}`, "GET", undefined, ".body") !== body)
       api(`${endpoint}/${number}`, "PATCH", { title: TITLE, body });
   } else {
-    api(endpoint, "POST", { title: TITLE, body, head: BRANCH, base: "main" });
+    try {
+      api(endpoint, "POST", { title: TITLE, body, head: BRANCH, base: "main" });
+    } catch (error) {
+      if (!isPrCreationForbidden(error)) throw error;
+      console.log(
+        `Catalog snapshot pushed to ${BRANCH}, but GitHub Actions is not permitted to open the ` +
+          'pull request. Enable "Allow GitHub Actions to create and approve pull requests" in ' +
+          "repository settings, or open the PR manually from the branch.",
+      );
+    }
   }
 }
 
