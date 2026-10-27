@@ -1,0 +1,44 @@
+name: Tarefa para o agente
+description: Delegue uma tarefa ao agente Copilot (atribua a issue ao Copilot)
+title: "[Agente] "
+labels: ["agent-task"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Preencha com precisão. Não inclua segredos. Veja `docs/AGENT.md`.
+  - type: textarea
+    id: objetivo
+    attributes:
+      label: Objetivo
+      description: O que deve ser feito, em 1-3 frases.
+    validations:
+      required: true
+  - type: textarea
+    id: contexto
+    attributes:
+      label: Contexto / arquivos relevantes
+      description: Pacotes, arquivos, links de issues/PRs relacionados.
+    validations:
+      required: true
+  - type: textarea
+    id: aceite
+    attributes:
+      label: Critério de aceite (verificável)
+      description: Lista de checagens objetivas (comando que passa, comportamento observável).
+    validations:
+      required: true
+  - type: textarea
+    id: restricoes
+    attributes:
+      label: Restrições
+      description: O que não mexer, compatibilidade, ações proibidas (deploy/publish).
+    validations:
+      required: false
+  - type: textarea
+    id: testes
+    attributes:
+      label: Testes esperados
+      description: Testes a adicionar/rodar (ex. `bun run --cwd packages/core test <arquivo>`).
+    validations:
+      required: true
